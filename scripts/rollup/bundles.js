@@ -16,6 +16,9 @@ const bundleTypes = {
   NODE_DEV: 'NODE_DEV',
   NODE_PROD: 'NODE_PROD',
   NODE_PROFILING: 'NODE_PROFILING',
+  BUN_DEV: 'BUN_DEV',
+  BUN_PROD: 'BUN_PROD',
+  BUN_PROFILING: 'BUN_PROFILING',
   FB_WWW_DEV: 'FB_WWW_DEV',
   FB_WWW_PROD: 'FB_WWW_PROD',
   FB_WWW_PROFILING: 'FB_WWW_PROFILING',
@@ -36,6 +39,9 @@ const {
   NODE_DEV,
   NODE_PROD,
   NODE_PROFILING,
+  BUN_DEV,
+  BUN_PROD,
+  BUN_PROFILING,
   FB_WWW_DEV,
   FB_WWW_PROD,
   FB_WWW_PROFILING,
@@ -95,6 +101,16 @@ const bundles = [
     wrapWithModuleBoundaries: false,
     externals: [],
   },
+  {
+    bundleTypes: [BUN_DEV, BUN_PROD],
+    moduleType: ISOMORPHIC,
+    entry: 'react/src/ReactSharedSubset.js',
+    name: 'react.shared-subset',
+    global: 'React',
+    minifyWithProdErrorCodes: true,
+    wrapWithModuleBoundaries: false,
+    externals: [],
+  },
 
   /******* React JSX Runtime *******/
   {
@@ -102,6 +118,9 @@ const bundles = [
       NODE_DEV,
       NODE_PROD,
       NODE_PROFILING,
+      BUN_DEV,
+      BUN_PROD,
+      BUN_PROFILING,
       // TODO: use on WWW.
       RN_FB_DEV,
       RN_FB_PROD,
@@ -121,6 +140,9 @@ const bundles = [
       NODE_DEV,
       NODE_PROD,
       NODE_PROFILING,
+      BUN_DEV,
+      BUN_PROD,
+      BUN_PROFILING,
       FB_WWW_DEV,
       FB_WWW_PROD,
       FB_WWW_PROFILING,
@@ -301,7 +323,7 @@ const bundles = [
 
   /******* React DOM Fizz Server *******/
   {
-    bundleTypes: [NODE_DEV, NODE_PROD, UMD_DEV, UMD_PROD],
+    bundleTypes: [NODE_DEV, BUN_DEV, BUN_PROD, NODE_PROD, UMD_DEV, UMD_PROD],
     moduleType: RENDERER,
     entry: 'react-dom/src/server/ReactDOMFizzServerBrowser.js',
     name: 'react-dom-server.browser',
@@ -315,6 +337,16 @@ const bundles = [
     moduleType: RENDERER,
     entry: 'react-dom/src/server/ReactDOMFizzServerNode.js',
     name: 'react-dom-server.node',
+    global: 'ReactDOMServer',
+    minifyWithProdErrorCodes: false,
+    wrapWithModuleBoundaries: false,
+    externals: ['react', 'util'],
+  },
+  {
+    bundleTypes: [BUN_DEV, BUN_PROD],
+    moduleType: RENDERER,
+    entry: 'react-dom/src/server/ReactDOMFizzServerBun.js',
+    name: 'react-dom-server.bun',
     global: 'ReactDOMServer',
     minifyWithProdErrorCodes: false,
     wrapWithModuleBoundaries: false,
@@ -571,6 +603,8 @@ const bundles = [
       FB_WWW_DEV,
       NODE_DEV,
       NODE_PROD,
+      BUN_DEV,
+      BUN_PROD,
       UMD_DEV,
       UMD_PROD,
       RN_FB_DEV,
@@ -609,7 +643,7 @@ const bundles = [
 
   /******* React Noop Persistent Renderer (used for tests) *******/
   {
-    bundleTypes: [NODE_DEV, NODE_PROD],
+    bundleTypes: [NODE_DEV, NODE_PROD, BUN_DEV, BUN_PROD],
     moduleType: RENDERER,
     entry: 'react-noop-renderer/persistent',
     global: 'ReactNoopRendererPersistent',
@@ -620,7 +654,7 @@ const bundles = [
 
   /******* React Noop Server Renderer (used for tests) *******/
   {
-    bundleTypes: [NODE_DEV, NODE_PROD],
+    bundleTypes: [NODE_DEV, NODE_PROD, BUN_DEV, BUN_PROD],
     moduleType: RENDERER,
     entry: 'react-noop-renderer/server',
     global: 'ReactNoopRendererServer',
@@ -631,7 +665,7 @@ const bundles = [
 
   /******* React Noop Flight Server (used for tests) *******/
   {
-    bundleTypes: [NODE_DEV, NODE_PROD],
+    bundleTypes: [NODE_DEV, NODE_PROD, BUN_DEV, BUN_PROD],
     moduleType: RENDERER,
     entry: 'react-noop-renderer/flight-server',
     global: 'ReactNoopFlightServer',
@@ -647,7 +681,7 @@ const bundles = [
 
   /******* React Noop Flight Client (used for tests) *******/
   {
-    bundleTypes: [NODE_DEV, NODE_PROD],
+    bundleTypes: [NODE_DEV, NODE_PROD, BUN_DEV, BUN_PROD],
     moduleType: RENDERER,
     entry: 'react-noop-renderer/flight-client',
     global: 'ReactNoopFlightClient',
@@ -972,6 +1006,12 @@ function getOriginalFilename(bundle, bundleType) {
       return `${name}.js`;
     case NODE_ESM:
       return `${name}.js`;
+    case BUN_DEV:
+      return `${name}.development.js`;
+    case BUN_PROD:
+      return `${name}.production.min.js`;
+    case BUN_PROFILING:
+      return `${name}.profiling.min.js`;
     case UMD_DEV:
       return `${name}.development.js`;
     case UMD_PROD:

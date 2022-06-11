@@ -47,6 +47,9 @@ const {
   NODE_ESM,
   UMD_DEV,
   UMD_PROD,
+  BUN_DEV,
+  BUN_PROD,
+  BUN_PROFILING,
   UMD_PROFILING,
   NODE_DEV,
   NODE_PROD,
@@ -106,6 +109,19 @@ const closureOptions = {
   inject_libraries: false,
 };
 
+const closureOptionsBun = {
+  compilation_level: 'SIMPLE',
+  language_in: 'ECMASCRIPT_2020',
+  language_out: 'ECMASCRIPT_2020',
+  env: 'CUSTOM',
+  warning_level: 'QUIET',
+  apply_input_source_maps: false,
+  use_types_for_optimization: false,
+  process_common_js_modules: false,
+  rewrite_polyfills: false,
+  inject_libraries: false,
+};
+
 // Non-ES2015 stuff applied before closure compiler.
 const babelPlugins = [
   // These plugins filter out non-ES2015.
@@ -140,6 +156,8 @@ const babelToES5Plugins = [
   ['@babel/plugin-transform-block-scoping', {throwIfClosureRequired: true}],
 ];
 
+const bunBabelPlugins = ['@babel/plugin-transform-flow-strip-types'];
+
 function getBabelConfig(
   updateBabelOptions,
   bundleType,
@@ -150,16 +168,24 @@ function getBabelConfig(
 ) {
   const canAccessReactObject =
     packageName === 'react' || externals.indexOf('react') !== -1;
+
+  const isBun =
+    bundleType === BUN_DEV ||
+    bundleType === BUN_PROD ||
+    bundleType === BUN_PROFILING;
+  const babelPluginsForConfig = !isBun ? babelPlugins : bunBabelPlugins;
+
   let options = {
     exclude: '/**/node_modules/**',
     babelrc: false,
     configFile: false,
     presets: [],
-    plugins: [...babelPlugins],
+    plugins: [...babelPluginsForConfig],
   };
   if (isDevelopment) {
+    const babelPluginsForDev = !isBun ? babelToES5Plugins : [];
     options.plugins.push(
-      ...babelToES5Plugins,
+      ...babelPluginsForDev,
       // Turn console.error/warn() into a custom wrapper
       [
         require('../babel/transform-replace-console-calls'),
@@ -221,7 +247,11 @@ function getFormat(bundleType) {
     case RN_FB_DEV:
     case RN_FB_PROD:
     case RN_FB_PROFILING:
+    case BUN_DEV:
+    case BUN_PROD:
+    case BUN_PROFILING:
       return `cjs`;
+
     case NODE_ESM:
       return `es`;
   }
@@ -232,6 +262,7 @@ function isProductionBundleType(bundleType) {
     case NODE_ES2015:
     case NODE_ESM:
     case UMD_DEV:
+    case BUN_DEV:
     case NODE_DEV:
     case FB_WWW_DEV:
     case RN_OSS_DEV:
@@ -239,6 +270,8 @@ function isProductionBundleType(bundleType) {
       return false;
     case UMD_PROD:
     case NODE_PROD:
+    case BUN_PROD:
+    case BUN_PROFILING:
     case UMD_PROFILING:
     case NODE_PROFILING:
     case FB_WWW_PROD:
@@ -257,6 +290,8 @@ function isProfilingBundleType(bundleType) {
   switch (bundleType) {
     case NODE_ES2015:
     case NODE_ESM:
+    case BUN_PROD:
+    case BUN_DEV:
     case FB_WWW_DEV:
     case FB_WWW_PROD:
     case NODE_DEV:
@@ -273,6 +308,7 @@ function isProfilingBundleType(bundleType) {
     case RN_FB_PROFILING:
     case RN_OSS_PROFILING:
     case UMD_PROFILING:
+    case BUN_PROFILING:
       return true;
     default:
       throw new Error(`Unknown type: ${bundleType}`);
@@ -307,6 +343,10 @@ function getPlugins(
 ) {
   const forks = Modules.getForks(bundleType, entry, moduleType, bundle);
   const isProduction = isProductionBundleType(bundleType);
+  const isBunBundle =
+    bundleType === BUN_DEV ||
+    bundleType === BUN_PROD ||
+    bundleType === BUN_PROFILING;
   const isProfiling = isProfilingBundleType(bundleType);
   const isUMDBundle =
     bundleType === UMD_DEV ||
@@ -372,7 +412,7 @@ function getPlugins(
     // Apply dead code elimination and/or minification.
     isProduction &&
       closure(
-        Object.assign({}, closureOptions, {
+        Object.assign({}, !isBunBundle ? closureOptions : closureOptionsBun, {
           // Don't let it create global variables in the browser.
           // https://github.com/facebook/react/issues/10909
           assume_function_wrapper: !isUMDBundle,

@@ -22,6 +22,9 @@ const {
   RN_FB_DEV,
   RN_FB_PROD,
   RN_FB_PROFILING,
+  BUN_DEV,
+  BUN_PROD,
+  BUN_PROFILING,
 } = bundleTypes;
 
 const {RECONCILER} = moduleTypes;
@@ -108,6 +111,41 @@ ${license}
 ${license}
  */
 (function(){${source}})();`;
+  },
+
+  /***************** BUN_DEV *****************/
+  [BUN_DEV](source, globalName, filename, moduleType) {
+    return `/**
+ * @license React
+ * ${filename}
+ *
+${license}
+ */
+
+${source}
+`;
+  },
+
+  /***************** BUN_PROD *****************/
+  [BUN_PROD](source, globalName, filename, moduleType) {
+    return `/**
+ * @license React
+ * ${filename}
+ *
+${license}
+ */
+${source}`;
+  },
+
+  /***************** BUN_PROFILING *****************/
+  [BUN_PROFILING](source, globalName, filename, moduleType) {
+    return `/**
+ * @license React
+ * ${filename}
+ *
+${license}
+ */
+${source}`;
   },
 
   /***************** NODE_DEV *****************/

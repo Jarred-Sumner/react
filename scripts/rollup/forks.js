@@ -16,6 +16,9 @@ const {
   RN_FB_DEV,
   RN_FB_PROD,
   RN_FB_PROFILING,
+  BUN_DEV,
+  BUN_PROD,
+  BUN_PROFILING,
 } = bundleTypes;
 const {RENDERER, RECONCILER} = moduleTypes;
 
